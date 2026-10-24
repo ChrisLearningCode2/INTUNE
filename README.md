@@ -92,3 +92,6 @@
 ## License
 
 This repository is for personal educational use. No license file — all work is original documentation of personal lab activities.
+
+<img width="1685" height="806" alt="image" src="https://github.com/user-attachments/assets/ef7df122-4fa0-4ab1-8905-a2d937f7d57f" />
+
