@@ -1,0 +1,75 @@
+# Lab 1 — Identity & Targeting Foundation
+
+## Objective
+Build the group structure used to target all future policies. In a traditional On-Premises Active Directory environment, Group Policy Objects (GPOs) are linked to Organizational Units (OUs) or Security Groups. In Microsoft Intune, **Microsoft 365 Groups** (or Security Groups) in Entra ID (Azure AD) serve the same purpose. You cannot assign a policy to "everyone" or "no one" — you must assign it to a group.
+
+This lab establishes the foundation for every policy you will create going forward.
+
+## Environment
+- **Tenant:** Personal Intune subscription (50 seats)
+- **Directory:** Entra ID (Azure AD)
+- **Group Type:** Security Group (not Microsoft 365 Group)
+- **Target Platform:** Windows 10 and later
+
+## Why Security Groups and not Microsoft 365 Groups?
+Intune policy assignment requires **Security Groups** or **Entra ID Assigned Groups**. Microsoft 365 Groups (which are tied to Teams, SharePoint, etc.) do not appear in the Intune assignment picker. This is a common point of confusion for new admins.
+
+## Steps Completed
+
+### Step 1: Navigate to Entra ID
+1. Open the **Microsoft Intune admin center** (`https://intune.microsoft.com`)
+2. In the left navigation, click **Tenant administration** (or go directly to the **Entra admin center** at `https://entra.microsoft.com`)
+3. Navigate to **Groups → All groups**
+
+### Step 2: Create the Security Group
+1. Click **+ Create a new group**
+2. **Group type:** Select **Security**
+3. **Group name:** Enter `LAB-INTUNE-WIN-Pilot`
+4. **Group description:** Enter `Pilot group for Intune Windows Configuration Labs. Used for testing Windows 10/11 configuration profiles, compliance policies, and security baselines.`
+5. **Group preview URL:** (auto-generated, no change needed)
+6. Click **Create**
+
+### Step 3: Add Members
+1. After creation, click on the group name to open its properties
+2. Navigate to the **Members** blade
+3. Click **+ Add members**
+4. Search for the dummy/test user accounts you created for this lab
+5. Select each account and click **Select**
+6. Verify the members appear in the group
+
+### Step 4: Verify Group Creation
+1. Go back to **Groups → All groups**
+2. Confirm `LAB-INTUNE-WIN-Pilot` appears in the list
+3. Note the **Group type** is "Security"
+4. Note the **Membership type** is "Assigned" (not Automatic/Dynamic)
+5. Note the **Assigned members** count matches the number of dummy accounts added
+
+## Key Concepts Learned
+
+### Security Groups vs. Microsoft 365 Groups
+| Feature | Security Group | Microsoft 365 Group |
+|---------|---------------|---------------------|
+| Primary use | Access control, policy targeting | Collaboration (Teams, SharePoint) |
+| Appears in Intune assignments? | Yes | No |
+| Can be used for Conditional Access? | Yes | Yes |
+| Has a mailbox? | No (unless licensed separately) | Yes |
+
+### Why This Matters for Enterprise
+In a real enterprise, you would not create a single "pilot" group. You would create groups following a naming convention that reflects:
+- **Function:** e.g., `INT-ADC-Win10-Workstations` (Intune AD Connector, Windows 10, Workstations)
+- **Location:** e.g., `INT-US-NC-Win10-Laptops`
+- **Department:** e.g., `INT-DEPT-Finance-Win10`
+- **Risk tier:** e.g., `INT-RISK-HighPrivilege-Win10`
+
+Your pilot group `LAB-INTUNE-WIN-Pilot` follows a clear learning-oriented naming convention. In production, you would adopt a consistent scheme.
+
+## Outcomes
+- One Security Group created: `LAB-INTUNE-WIN-Pilot`
+- Group populated with dummy/test user accounts
+- Group ready to be used as a target for Intune policy assignments
+- Understanding of why Security Groups (not M365 Groups) are required for Intune
+
+## References
+- [Microsoft Learn: Create a group](https://learn.microsoft.com/en-us/entra/fundamentals/how-to-create-a-group)
+- [Microsoft Learn: Assign a policy to users or groups in Intune](https://learn.microsoft.com/en-us/intune/device-configuration/assign-device-profile)
+
