@@ -149,3 +149,55 @@ Click on this category to expand the available settings. You will see 6 results 
 
 ### Settings Catalog Structure
 The Settings Catalog is organized as a hierarchy:
+
+Category (e.g., Microsoft Edge - Default Settings) └── Subcategory (e.g., Startup, home page and new tab page) └── Setting (e.g., Action to take on Microsoft Edge startup) └── Value (e.g., Open a list of URLs)
+
+
+Each setting maps to an underlying ADMX policy. The Settings Catalog provides a user-friendly interface, but the policies it configures are standard Windows Group Policy settings.
+
+### Device Scope vs. User Scope
+| Aspect | Device Scope | User Scope |
+|--------|-------------|------------|
+| Applies to | The entire device | Individual user profiles |
+| Enforced when | Any user logs in | Specific user logs in |
+| Use case | Corporate-wide browser policy | Personalized user preferences |
+| GPO equivalent | Computer Configuration | User Configuration |
+
+### Policy Categories
+Intune classifies settings into categories:
+- **Default Settings (users can override):** Policies that set a baseline but allow users to change them
+- **Enforced Settings:** Policies that users cannot change, even locally
+- **Recommended Settings:** Policies that suggest best practices
+
+The Microsoft Edge settings you configured fall under **Default Settings (users can override)**, meaning the policy sets a baseline but users may be able to modify it depending on the specific setting.
+
+### ADMX Policy Splitting
+Many Windows policies are split across multiple ADMX nodes even though they are logically related. The Settings Catalog reflects this split. Understanding this pattern is important because:
+- You may need to add multiple settings to a single profile to configure a complete feature
+- Settings that appear unrelated in the Catalog may be related under the hood
+- Troubleshooting requires understanding which node controls which part of the behavior
+
+## Outcomes
+- One configuration profile created: `Lab-Homepage-Edge`
+- Platform: Windows 10 and later
+- Profile type: Settings catalog
+- Setting configured: Microsoft Edge startup behavior (Device scope)
+- Profile assigned to: `LAB-INTUNE-WIN-Pilot` group
+- Full wizard flow practiced: Basics → Configuration settings → Scope tags → Assignments → Review + create
+
+## Limitations
+- No enrolled devices are available, so policy application status cannot be verified
+- The URL list setting (companion node) was not added in this iteration, but the workflow for adding it is documented above
+- Policy will not take effect on any device until a device is enrolled and receives the policy
+
+## Next Steps
+- Add the companion URL list setting to this profile (edit the existing profile)
+- Create a Compliance Policy (Lab 3)
+- Create a Conditional Access policy that requires device compliance (Lab 4)
+- Enroll a test device to observe policy application
+
+## References
+- [Microsoft Learn: Create device configuration profiles](https://learn.microsoft.com/en-us/intune/device-configuration/create-device-profile)
+- [Microsoft Learn: Settings catalog in Intune](https://learn.microsoft.com/en-us/intune/device-configuration-settings-catalog)
+- [Microsoft Learn: Assign a policy to users or groups](https://learn.microsoft.com/en-us/intune/device-configuration/assign-device-profile)
+- [Microsoft Learn: Scope tags overview](https://learn.microsoft.com/en-us/intune/fundamentals/role-based-access-control/scope-tags)
