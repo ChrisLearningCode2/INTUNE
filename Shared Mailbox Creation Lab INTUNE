@@ -1,0 +1,93 @@
+# Shared Mailbox Creation Lab
+
+**Tenant:** `401ops.onmicrosoft.com`
+**Date:** 2026-10-25
+**Role used:** Global Administrator / Exchange Administrator
+**Method:** Microsoft 365 admin center (GUI)
+
+
+
+## Objective
+
+Create a shared mailbox in Exchange Online and delegate access to an
+existing licensed user, with no additional license consumed.
+
+## Prerequisites Verified
+
+- Entra ID tenant with Microsoft 365 Business Premium subscription
+- Exchange Online organization initialized (confirmed via existing
+  `UserMailbox`: `ChristyMarquez@401ops.onmicrosoft.com`)
+- Admin role assigned to the acting account
+
+## Steps Performed
+
+1. Navigated to **admin.exchange.microsoft.com → Recipients → Mailboxes**.
+   Note: shared mailbox *creation* has been removed from the EAC; only
+   management actions (delegation, hide from address list, convert) remain.
+2. Redirected to **admin.microsoft.com → Teams & groups → Shared mailboxes**.
+3. Selected **Add a shared mailbox**.
+4. Completed the form:
+
+   | Field | Value |
+   |---|---|
+   | Display name | Support Desk |
+   | Email address | supportdesk@401ops.onmicrosoft.com |
+
+5. Confirmed creation — success banner returned: *"Your shared mailbox was created."*
+6. Opened the new mailbox → **Members** → added `Christy Marquez`.
+
+## Result
+
+![Shared mailbox created successfully](docs/shared-mailbox-created.png)
+
+The mailbox now appears in the **Shared mailboxes** list and replicates into
+the delegate's Outlook/OWA within 15–60 minutes.
+
+## Permissions Granted by Membership
+
+Adding a member via this wizard assigns two permissions automatically:
+
+- **FullAccess** — read, send, move, and delete items in the mailbox
+- **SendAs** — outbound messages appear to originate from the shared address,
+  not the individual delegate
+
+No `SendOnBehalf` is granted by default. That must be applied separately if
+"on behalf of" semantics are required.
+
+## Verification Checklist
+
+- [ ] Shared mailbox visible in M365 admin center list
+- [ ] Shared mailbox visible in EAC with `RecipientTypeDetails = SharedMailbox`
+- [ ] Delegate sees mailbox under **Shared mailboxes** in OWA after replication
+- [ ] Delegate can compose using **From → Support Desk**
+- [ ] Sent item lands in the shared mailbox's **Sent Items**, not the delegate's
+
+## Key Takeaways
+
+- Shared mailboxes are **unlicensed** up to 50 GB. No license is consumed on
+  creation or through delegation.
+- The **delegate** must have their own Exchange mailbox. A bare cloud-only
+  user object cannot be delegated.
+- Permission changes are **not instant**. Replication lag is the most common
+  cause of "I added them but they can't see it yet" tickets.
+- `-AutoMapping $true` (default) pushes the mailbox into the delegate's
+  profile. For users with many shared mailboxes, disable auto-mapping to
+  avoid slow Outlook startup.
+
+## Equivalent PowerShell
+
+```powershell
+Connect-ExchangeOnline
+
+New-Mailbox -Shared -Name "Support Desk" `
+            -DisplayName "Support Desk" `
+            -Alias supportdesk `
+            -PrimarySmtpAddress supportdesk@401ops.onmicrosoft.com
+
+Add-MailboxPermission -Identity supportdesk@401ops.onmicrosoft.com `
+                      -User ChristyMarquez@401ops.onmicrosoft.com `
+                      -AccessRights FullAccess -AutoMapping $true
+
+Add-RecipientPermission -Identity supportdesk@401ops.onmicrosoft.com `
+                        -Trustee ChristyMarquez@401ops.onmicrosoft.com `
+                        -AccessRights SendAs
