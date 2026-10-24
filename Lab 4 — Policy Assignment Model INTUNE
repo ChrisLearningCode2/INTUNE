@@ -1,0 +1,130 @@
+# Lab 4 — Policy Assignment Model
+
+## Objective
+Understand how Intune policy assignments work — specifically, the difference between **included groups** and **excluded groups**, and how assignments determine which users or devices actually receive a configuration profile.
+
+This lab completes the deployment workflow by assigning the configuration profile created in Lab 2 (`Lab-Homepage-Edge`) to the pilot group (`LAB-INTUNE-WIN-Pilot`).
+
+## Environment
+- **Tenant:** Personal Intune subscription (50 seats)
+- **Profile:** `Lab-Homepage-Edge` (created in Lab 2)
+- **Target group:** `LAB-INTUNE-WIN-Pilot`
+
+## Background: How Intune Assignments Work
+
+Intune policy assignments follow a simple but powerful model:
+Policy → Assigned to Included Groups → Policy is delivered to users/devices in those groups ↓ Assigned to Excluded Groups → Policy is explicitly blocked from these users/devices
+
+
+This is fundamentally different from Group Policy in Active Directory, where GPOs are linked to OUs and processed in a specific order (Local → Site → Domain → OU). In Intune:
+- There is **no processing order** — all assignments are evaluated simultaneously
+- **Exclusions override inclusions** — if a user is in both an included and excluded group, the exclusion wins
+- **No inheritance** — policies are not inherited through group nesting (though Microsoft 365 Dynamic Groups can simulate this)
+
+## Steps Completed
+
+### Step 1: Navigate to the Profile
+1. Open the **Microsoft Intune admin center** (`https://intune.microsoft.com`)
+2. In the left navigation, expand **Devices**
+3. Click **Configuration profiles**
+4. Find and click on `Lab-Homepage-Edge` to open its properties
+
+### Step 2: Review Existing Assignments
+1. In the profile blade, click **Properties** (if not already there)
+2. Click the **Assignments** tab
+3. Review the current assignments:
+   - **Included groups:** (should show `LAB-INTUNE-WIN-Pilot` if assigned during creation)
+   - **Excluded groups:** (should be empty)
+
+### Step 3: Edit Assignments (if needed)
+If the profile was not assigned during creation, or if you want to modify assignments:
+
+1. Click **Edit** next to **Included groups**
+2. The group picker opens
+3. Click **+ Add groups**
+4. Search for `LAB-INTUNE-WIN-Pilot`
+5. Select the group and click **Select**
+6. The group appears in the Included groups table with:
+   - **Group name:** `LAB-INTUNE-WIN-Pilot`
+   - **Status:** Active
+   - **Group Members:** (count, e.g., 5)
+   - **Filter:** (none)
+   - **Filter mode:** (none)
+7. Click **Save** or **Next** to proceed
+
+### Step 4: Configure Excluded Groups (Optional)
+1. Under **Excluded groups**, click **+ Add groups**
+2. For this lab, leave excluded groups empty
+3. **Note:** In a real enterprise, you might exclude:
+   - A group of test devices that should not receive production policies
+   - A group of high-security devices that require a different configuration
+   - A group of users who are on a deferral period
+
+### Step 5: Assignment Filters (Not Configured in This Lab)
+1. **Assignment filters** allow you to narrow policy applicability based on device properties (e.g., "only apply to company-owned devices" or "only apply to Windows 11 devices")
+2. For this lab, assignment filters are not configured
+3. **Note:** Assignment filters are a powerful feature for phased rollouts and targeted deployments
+
+### Step 6: Verify Assignment
+1. After saving, review the Assignments blade
+2. Confirm:
+   - **Included groups:** `LAB-INTUNE-WIN-Pilot` is listed
+   - **Excluded groups:** Empty (or contains any exclusions you added)
+   - **Assignment filters:** None configured
+
+## Key Concepts Learned
+
+### Inclusion vs. Exclusion Logic
+| Scenario | Result |
+|----------|--------|
+| User is in an included group | Policy is delivered |
+| User is in an excluded group | Policy is blocked |
+| User is in both included and excluded groups | Policy is blocked (exclusion wins) |
+| User is in neither included nor excluded groups | Policy is not delivered |
+| User is in multiple included groups | Policy is delivered (no conflict) |
+
+### Assignment Scope: Users vs. Devices
+Intune policies can be assigned to:
+- **User groups** — The policy applies to the user, regardless of which device they use. Settings are applied when the user logs in.
+- **Device groups** — The policy applies to the device, regardless of which user logs in. Settings are applied when the device checks in with Intune.
+
+For the `Lab-Homepage-Edge` profile, you assigned it to a **user group** (`LAB-INTUNE-WIN-Pilot`). This means the Edge startup setting applies to each user in the group, on any device they use.
+
+If you had assigned it to a **device group**, the setting would apply to each device, regardless of which user logs in.
+
+### Pilot-Ring Deployment Strategy
+Your assignment to `LAB-INTUNE-WIN-Pilot` follows the **pilot-ring deployment strategy**:
+1. Create the policy
+2. Assign to a small pilot group (your lab group)
+3. Monitor for issues
+4. Expand to larger groups (e.g., all employees)
+5. Remove from pilot group (optional)
+
+This minimizes risk by limiting the initial impact to a small, controlled group.
+
+### Assignment Frequency and Processing
+- Intune policies are not applied instantly. Devices check in with Intune on a schedule (typically every 24 hours, or sooner if triggered by events).
+- Users can manually trigger a policy refresh by going to **Settings → Accounts → Access work or school → Info → Sync** (on Windows).
+- Admins can force a policy refresh by sending a **Remotely initiate Windows Update scan** action from the Intune console (requires an enrolled device).
+
+## Outcomes
+- Configuration profile `Lab-Homepage-Edge` assigned to group `LAB-INTUNE-WIN-Pilot`
+- Included groups configured
+- Excluded groups left empty
+- Assignment filters not configured
+- Full understanding of inclusion/exclusion logic and pilot-ring deployment
+
+## Limitations
+- No enrolled devices available, so policy application cannot be verified
+- Assignment is to a user group; device group assignment was not tested
+- No assignment filters configured
+
+## Next Steps
+- Create a Compliance Policy (Lab 5)
+- Create a Conditional Access policy that references the compliance policy (Lab 6)
+- Enroll a test device to observe policy application and assignment behavior
+
+## References
+- [Microsoft Learn: Assign a policy to users or groups](https://learn.microsoft.com/en-us/intune/device-configuration/assign-device-profile)
+- [Microsoft Learn: Assignment filters for Intune](https://learn.microsoft.com/en-us/intune/apps/app-assigned-filters)
+- [Microsoft Learn: Policy processing and delivery in Intune](https://learn.microsoft.com/en-us/intune/fundamentals/understand-intune-policy-processing)
