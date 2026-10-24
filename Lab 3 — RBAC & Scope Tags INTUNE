@@ -1,0 +1,107 @@
+# Lab 3 — RBAC & Scope Tags
+
+## Objective
+Understand the relationship between **Role-Based Access Control (RBAC)** and **Scope Tags** in Microsoft Intune, and how they work together to control administrative visibility and permissions.
+
+This lab explores the scope tag system, which is a critical concept for enterprise Intune deployments — especially in organizations with multiple IT teams, regional administrators, or managed service providers (MSPs) managing customer tenants.
+
+## Environment
+- **Tenant:** Personal Intune subscription (50 seats)
+- **Exploration path:** Tenant administration → Roles management → Scope (tags)
+
+## Background: Why RBAC and Scope Tags Matter
+
+In a small organization, one admin manages everything. In an enterprise, you might have:
+- A **desktop support team** that handles laptops and workstations
+- A **server team** that handles Windows Server and Azure VMs
+- A **security team** that handles compliance policies and conditional access
+- **Regional admins** (e.g., "North America IT," "EMEA IT")
+- An **MSP** that manages your tenant on your behalf
+
+Without RBAC and scope tags, any admin with the "Intune Administrator" role can see and modify everything. This is a security risk and an operational nightmare.
+
+**RBAC** answers: *What can an admin do?* (read, write, delete, perform remote actions)
+**Scope Tags** answer: *What can an admin see?* (which policies, devices, and groups are visible to them)
+
+## Steps Completed
+
+### Step 1: Navigate to Scope Tags
+1. Open the **Microsoft Intune admin center** (`https://intune.microsoft.com`)
+2. In the left navigation, expand **Tenant administration**
+3. Click **Roles management**
+4. In the Roles management blade, click **Scope (tags)**
+
+### Step 2: Explore Existing Scope Tags
+1. You see a list of scope tags in your tenant
+2. By default, every tenant has one scope tag: **Default**
+3. The **Default** scope tag is automatically applied to all untagged Intune objects (policies, profiles, devices, etc.)
+4. If you have created any custom scope tags, they appear in this list
+
+### Step 3: Understand the Default Scope Tag
+- The **Default** scope tag cannot be deleted
+- Any Intune object that does not have a custom scope tag assigned automatically receives the Default tag
+- Admins with the **Global Administrator** role can see all objects, regardless of scope tags
+- Admins with other roles (e.g., Intune Administrator, Helpdesk Administrator) can only see objects that match the scope tags assigned to their role assignment
+
+### Step 4: Review Role Assignments (Optional Exploration)
+1. In **Roles management**, click **Role assignments**
+2. Review existing role assignments
+3. For each assignment, note:
+   - **Role:** The RBAC role assigned (e.g., Intune Administrator, Helpdesk Administrator)
+   - **Members:** The security group or users assigned to this role
+   - **Scope (Groups):** The user/device groups these admins can manage
+   - **Scope (Tags):** The scope tags these admins can see
+
+### Step 5: Key Observations
+1. **Scope tags are not assignments.** A scope tag on a policy does not deploy it to anyone. It only controls which admins can see the policy.
+2. **Scope tags and assignments are independent.** You can have a policy with scope tag "Seattle" assigned to a "New York" group. The policy deploys to the New York group, but only admins who have the "Seattle" scope tag can see the policy.
+3. **Some policy types do not show the Scope Tags blade** until at least one custom scope tag (besides Default) exists in the tenant. This is a known Intune behavior.
+
+## Key Concepts Learned
+
+### RBAC Roles in Intune
+Microsoft Intune includes several built-in RBAC roles:
+
+| Role | Permissions | Typical Use |
+|------|------------|-------------|
+| **Global Administrator** | Full access to all Intune features and all objects | Primary tenant admin |
+| **Intune Administrator** | Full access to Intune features but only to objects they have scope access to | Primary Intune admin |
+| **Helpdesk Administrator** | Limited read/write access; can perform remote actions (wipe, lock) but not create policies | Tier 1/2 support |
+| **Device Management Administrator** | Manage devices and apps but not all Intune features | Device-focused admin |
+| **Application Administrator** | Manage apps but not device configuration | App-focused admin |
+
+### Scope Tags vs. Scope Groups vs. Assignments
+| Component | Controls | Example |
+|-----------|----------|---------|
+| **RBAC Role** | What an admin can *do* (actions) | "Policy and Profile Manager" role allows creating/editing policies |
+| **Scope (Groups)** | Which *users/devices* an admin can manage | Admins can only manage devices in group `INT-US-NC-Devices` |
+| **Scope (Tags)** | Which *Intune objects* an admin can *see* | Admins can only see policies tagged `US-NC` |
+| **Policy Assignment** | Which *users/devices* *receive* the policy | Policy is deployed to group `INT-US-NC-Workstations` |
+
+### Scope Tag Best Practices
+1. **One tag per geographic region or business unit:** e.g., `US-NC`, `US-CA`, `EMEA`, `APAC`
+2. **One tag per customer (for MSPs):** e.g., `CUST-Contoso`, `CUST-Fabrikam`
+3. **One tag per environment:** e.g., `PROD`, `DEV`, `TEST`
+4. **Tag everything consistently:** Policies, profiles, devices, and apps should all receive appropriate scope tags
+5. **Default tag for untagged objects:** Use Default for objects that don't need visibility restrictions
+
+## Outcomes
+- Explored the Scope Tags blade in Tenant administration
+- Understood the Default scope tag and its behavior
+- Reviewed the relationship between RBAC roles, scope groups, scope tags, and policy assignments
+- Documented the distinction between visibility controls (scope tags) and deployment controls (assignments)
+
+## Limitations
+- No custom scope tags were created in this lab (the tenant only has the Default tag)
+- No role assignments were modified
+- This is a single-admin lab; RBAC and scope tags are most relevant in multi-admin environments
+
+## Next Steps
+- Create a custom scope tag (e.g., `Lab-Windows`) and assign it to the configuration profile from Lab 2
+- Create a second admin account and assign it a limited role with scope tag restrictions
+- Practice the full RBAC setup: create tag → create role assignment → assign tag to policies → verify admin visibility
+
+## References
+- [Microsoft Learn: Use RBAC and scope tags for distributed IT](https://learn.microsoft.com/en-us/intune/fundamentals/role-based-access-control/scope-tags)
+- [Microsoft Learn: Intune built-in roles](https://learn.microsoft.com/en-us/intune/fundamentals/role-based-access-control)
+- [Microsoft Learn: Scope tags implementation guide](https://www.itechguides.com/intune-scope-tags-implementation-guide-for-administrators/)
