@@ -1,0 +1,151 @@
+# Lab 2 — Device Configuration Profile (Settings Catalog)
+
+## Objective
+Create, configure, and deploy a Windows configuration profile using the **Settings Catalog** in Microsoft Intune. This lab mimics the process of deploying a legacy Group Policy Object (GPO) that configures browser startup behavior — specifically, setting Microsoft Edge to open a specific URL on launch.
+
+The Settings Catalog is Intune's modern approach to policy management. Instead of importing ADMX files or selecting from pre-built templates, admins search for individual settings by name and compose profiles from scratch. This provides maximum flexibility but requires understanding of the underlying ADMX policy structure.
+
+## Environment
+- **Tenant:** Personal Intune subscription (50 seats)
+- **Platform:** Windows 10 and later
+- **Profile type:** Settings catalog
+- **Target group:** `LAB-INTUNE-WIN-Pilot`
+
+## Background: Why Settings Catalog?
+Intune supports three methods for creating device configuration profiles:
+
+1. **Templates** — Pre-built, simplified profiles (e.g., "Endpoint protection," "Windows feature management"). Good for common scenarios, limited customization.
+2. **Administrative Templates (ADMX)** — Direct import of Windows ADMX policy files. Provides access to the full Windows policy surface but requires understanding of ADMX structure.
+3. **Settings Catalog** — Modern UI that maps to ADMX policies behind the scenes. Searchable, category-based, and the recommended approach for most new profiles.
+
+This lab uses the **Settings Catalog** because it is the current Microsoft-recommended approach and provides the best learning experience for understanding how Intune maps to Windows policies.
+
+## Steps Completed
+
+### Step 1: Navigate to Configuration Profiles
+1. Open the **Microsoft Intune admin center** (`https://intune.microsoft.com`)
+2. In the left navigation, expand **Devices**
+3. Click **Configuration profiles**
+
+### Step 2: Start Profile Creation
+1. Click **+ Create profile**
+2. **Platform:** Select **Windows 10 and later**
+3. **Profile type:** Select **Settings catalog**
+4. Click **Create**
+
+### Step 3: Configure Basics
+1. **Name:** Enter `Lab-Homepage-Edge`
+2. **Description:** Enter `Sets Microsoft Edge startup behavior to open a specific URL. Configured via Settings Catalog. Part of Intune Windows configuration labs.`
+3. **Owner:** Leave as **My Organization** (default)
+4. Click **Next** to proceed to Configuration settings
+
+### Step 4: Browse the Settings Catalog
+1. On the **Configuration settings** blade, click **+ Add settings**
+2. The **Settings picker** panel opens on the right side of the screen
+3. In the search box at the top of the picker, type: `microsoft edge start`
+4. Click **Search**
+
+### Step 5: Navigate the Category Hierarchy
+The search returns results organized by category. The relevant category is:
+- **Microsoft Edge - Default Settings (users can override)** → **Startup, home page and new tab page**
+
+Click on this category to expand the available settings. You will see 6 results under the "Startup, home page and new tab page" subcategory:
+
+| Setting Name | Scope | Description |
+|-------------|-------|-------------|
+| Action to take on Microsoft Edge startup | Device | Controls Edge startup behavior for all users on the device |
+| Action to take on Microsoft Edge startup (Device) | Device | Device-scoped variant |
+| Action to take on Microsoft Edge startup (User) | User | Controls startup behavior per user profile |
+| Action to take on Microsoft Edge startup (User) | User | User-scoped variant |
+| (Additional settings in subcategory) | — | Other startup-related Edge policies |
+
+**Key distinction: Device scope vs. User scope**
+- **Device-scope settings** apply to the machine regardless of which user logs in. They are enforced at the system level.
+- **User-scope settings** apply per user profile. Different users can have different settings.
+- For enterprise deployment, device scope is more common for browser policies because IT wants consistent behavior across all users on corporate devices.
+
+### Step 6: Select the Setting
+1. Check the box next to **Action to take on Microsoft Edge startup** (the device-scoped version)
+2. Click **Select** at the bottom of the Settings picker panel
+3. The Settings picker closes
+4. The selected setting now appears in the **Configuration settings** list on the left
+
+### Step 7: Configure the Setting Value
+1. Click on the **Action to take on Microsoft Edge startup** row in the Configuration settings list to expand it
+2. The setting expands to reveal a dropdown menu
+3. The dropdown options are:
+   - **Open a new tab** (default)
+   - **Restore the last session**
+   - **Open a list of URLs** ← *Select this option*
+   - **Open a list of URLs and restore the last session**
+
+4. Select **Open a list of URLs**
+
+5. **Important observation:** After selecting "Open a list of URLs," you might expect a text box to appear where you can enter URLs. In this particular Intune UI version, the URL list field does not appear inline. This is because the Settings Catalog splits ADMX policies into two nodes:
+   - **Node 1:** Controls *what action* Edge takes on startup (the setting you just configured)
+   - **Node 2:** Controls *which URLs* are in the list (a separate ADMX policy)
+
+   This split is a known characteristic of the Settings Catalog and reflects how Windows Group Policy handles related but distinct policy settings.
+
+6. **Decision point:** For this lab, you have two options:
+   - **Option A (recommended for learning):** Leave the setting as "Open a list of URLs" and proceed. The policy is valid even without URLs specified — it simply tells Edge to expect a list. This teaches you the workflow.
+   - **Option B (more complete):** Go back to **Add settings** and search for `"Configure Open web pages listed in the browser startup page list"`. This is the companion setting that actually holds the URL list. Add it alongside the first setting.
+
+   *For this lab, proceed with Option A to complete the full wizard flow.*
+
+7. Click **Next** to proceed to Scope tags
+
+### Step 8: Scope Tags (Review)
+1. On the **Scope tags** blade, you see the scope tag options
+2. For a single-admin lab environment, leave the scope tag as **Default**
+3. Click **Next**
+
+> **Note:** Scope tags are used in distributed IT environments where multiple admin teams manage different subsets of devices and policies. They control *visibility*, not *deployment*. In a single-admin lab, they are optional.
+
+### Step 9: Assignments
+1. On the **Assignments** blade, you see two sections:
+   - **Included groups** (policies are deployed to these groups)
+   - **Excluded groups** (policies are explicitly blocked from these groups)
+
+2. Under **Included groups**, click **+ Add groups**
+3. The group picker opens
+4. Search for `LAB-INTUNE-WIN-Pilot`
+5. Select the group and click **Select**
+6. The group now appears in the Included groups table with:
+   - **Group name:** `LAB-INTUNE-WIN-Pilot`
+   - **Status:** Active
+   - **Group Members:** (count of accounts in the group)
+   - **Filter:** (none)
+   - **Filter mode:** (none)
+
+7. Under **Excluded groups**, leave it empty (no exclusions needed for this lab)
+
+8. Click **Next** to proceed to Review + create
+
+### Step 10: Review and Create
+1. On the **Review + create** blade, you see a summary of your profile:
+   - **Name:** Lab-Homepage-Edge
+   - **Description:** (as entered)
+   - **Platform:** Windows 10 and later
+   - **Profile type:** Settings catalog
+   - **Configuration settings:** Action to take on Microsoft Edge startup (Device scope) → Open a list of URLs
+   - **Scope tags:** Default
+   - **Assignments:** Included group: LAB-INTUNE-WIN-Pilot
+
+2. Review all settings for accuracy
+3. Click **Create**
+
+### Step 11: Verify Profile Creation
+1. After creation, you are redirected to the Configuration profiles list
+2. Confirm `Lab-Homepage-Edge` appears in the list
+3. Click on the profile name to open its properties
+4. Verify:
+   - **Basics** section shows correct name, description, platform
+   - **Configuration settings** section shows your selected setting
+   - **Assignments** section shows `LAB-INTUNE-WIN-Pilot` as an included group
+   - **Scope tags** section shows Default
+
+## Key Concepts Learned
+
+### Settings Catalog Structure
+The Settings Catalog is organized as a hierarchy:
