@@ -1,0 +1,197 @@
+# Lab 5 — Endpoint Security Surface Area Survey
+
+## Objective
+Explore the **Endpoint security** workload in Microsoft Intune and map the available security policy types. This lab does not create any policies — instead, it provides a comprehensive overview of the security capabilities available in Intune, their locations in the admin center, and their relationships to each other.
+
+This survey is essential for building mental models of the Intune security surface. Before creating policies, an admin should understand what categories of security controls exist and how they fit together.
+
+## Environment
+- **Tenant:** Personal Intune subscription (50 seats)
+- **Exploration path:** Endpoint security → Overview, and all sub-workloads under Manage
+
+## Background: The Endpoint Security Workload
+
+The **Endpoint security** blade in Intune is the central hub for all security-related policies. It encompasses:
+
+1. **Device hardening policies** — Antivirus, firewall, disk encryption, attack surface reduction
+2. **Identity and access policies** — Account protection (Windows Hello, BitLocker recovery), endpoint privilege management
+3. **Compliance and conditional access** — Device compliance policies and Conditional Access integration
+
+These policies work together in a layered security model:
+Device Hardening (Antivirus, Firewall, Encryption) ↓ Device Compliance (Is the device meeting security requirements?) ↓ Conditional Access (Grant or deny access based on compliance state) ↓ App Protection (Protect data even on non-compliant or personal devices)
+
+
+Understanding this layering is critical. Each layer addresses a different aspect of security, and they are not interchangeable.
+
+## Steps Completed
+
+### Step 1: Navigate to Endpoint Security
+1. Open the **Microsoft Intune admin center** (`https://intune.microsoft.com`)
+2. In the left navigation, click **Endpoint security**
+
+### Step 2: Review the Overview Page
+The **Overview** page provides a high-level summary of the security posture of your managed devices. Key sections include:
+
+#### Defender for Endpoint Connector Status
+- Shows whether the Defender for Endpoint connector is configured and active
+- Status: "Defender for Endpoint connector unavailable" (expected in a lab with no enrolled devices)
+- The connector bridges Intune and the Microsoft Defender portal, enabling advanced threat protection features
+
+#### Windows Devices Onboarded to Defender for Endpoint
+- Shows the count of devices onboarded to Defender for Endpoint
+- Status: **0** (expected — no devices enrolled)
+- Onboarding is a prerequisite for advanced threat protection features
+
+#### Antivirus Agent Status
+- Shows the status of the Microsoft Defender Antivirus agent across managed devices
+- With no devices, this shows no data
+
+#### Other Monitoring Reports
+- **Detected Malware:** Shows malware detection events across managed devices
+- **Firewall Status:** Shows whether Defender Firewall is enabled on managed devices
+- **Link to Defender portal:** Provides a direct link to the Microsoft Defender portal for advanced threat analysis
+
+### Step 3: Explore Manage Sub-Workloads
+Under **Endpoint security → Manage**, the following policy types are available:
+
+#### Security Baselines
+- **Description:** Pre-built, Microsoft-recommended security configurations for Windows 10/11, macOS, iOS/iPadOS, and other platforms
+- **Structure:** Each baseline contains 30–50+ individual settings covering:
+  - Windows security features (Defender, SmartScreen, Windows Hello)
+  - Credential protection (BitLocker, Windows Hello for Business)
+  - Network security (Firewall, Network Protection)
+  - Application control (Microsoft Defender Application Control)
+- **Comparison to hand-built policies:** Baselines are faster to deploy and follow Microsoft best practices. Hand-built policies (via Settings Catalog or Templates) offer more granular control but require more effort.
+- **Best practice:** Apply baselines as a foundation, then customize with additional Settings Catalog profiles for organization-specific requirements
+
+#### Antivirus
+- **Description:** Configure Microsoft Defender Antivirus settings, including:
+  - Real-time protection
+  - Cloud-delivered protection
+  - Automatic sample submission
+  - Exclusions (files, processes, locations)
+  - Scheduled scans
+- **Enterprise relevance:** Antivirus configuration is a core endpoint security task. Misconfiguration can leave devices vulnerable or cause false positives that disrupt business operations.
+
+#### Disk Encryption
+- **Description:** Configure BitLocker encryption settings:
+  - Enable BitLocker on devices
+  - Recovery key storage (to Microsoft Entra ID or Microsoft Recovery Key Container)
+  - Recovery password distribution (to users or IT admin)
+  - Encryption method (XTS-AES 128-bit or 256-bit)
+  - Startup authentication requirements (PIN, TPM, USB key)
+- **Enterprise relevance:** BitLocker is required for compliance with most security frameworks (NIST, CIS, ISO 27001). Recovery key management is a critical operational task.
+
+#### Firewall
+- **Description:** Configure Windows Defender Firewall settings:
+  - Enable/disable firewall on public/private networks
+  - Inbound/outbound connection rules
+  - Notification settings
+  - Logging configuration
+- **Enterprise relevance:** Firewall configuration is often delegated to network teams. Intune provides a centralized way to manage Windows Firewall across all managed devices.
+
+#### Endpoint Privilege Management
+- **Description:** Control which users can run applications with elevated privileges (admin rights):
+  - Application control policies
+  - Elevation rules (allow/deny based on publisher, path, hash)
+  - Audit mode vs. enforcement mode
+- **Enterprise relevance:** Principle of least privilege. Users should not have local admin rights unless required. Endpoint Privilege Management allows controlled elevation for specific tasks without granting permanent admin rights.
+
+#### App Control for Business (Microsoft Defender Application Control)
+- **Description:** Control which applications can run on managed devices:
+  - Allow-list mode (only approved apps can run)
+  - Blocks apps not on the on the allow list (also called a whitelist). Only applications that have been explicitly approved — by publisher signature, file hash, or install path — are permitted to run. Everything else is blocked.
+
+#### App Control for Business (Microsoft Defender Application Control)
+- **Description:** Control which applications can run on managed devices:
+  - Allow-list mode (only approved apps can run)
+  - Blocks apps not on the allow list (unsigned, unknown, or explicitly denied software)
+  - Audit mode vs. enforcement mode
+  - Intelligent Security Based Recommendation (ISBR) using Defender signals
+- **Enterprise relevance:** Prevents ransomware and unapproved software from executing. High-friction control — must be planned carefully or it breaks business applications.
+
+#### Attack Surface Reduction (ASR)
+- **Description:** Rules that block common malware behaviors:
+  - Block Office apps from creating child processes
+  - Block executable content from email clients
+  - Block JavaScript/VBScript from running unless it meets a prevalence threshold
+  - Block credential stealing from the Windows local security authority subsystem
+- **Modes:** Block (enforce) or Audit (log only)
+- **Enterprise relevance:** ASR rules are one of the highest-value, lowest-effort protections available. Most enterprises deploy them in audit mode first, review logs, then switch to block.
+
+#### Account Protection
+- **Description:** Identity-related endpoint controls:
+  - Windows Hello for Business (passwordless sign-in with PIN/biometric)
+  - BitLocker recovery configuration
+  - Microsoft Passport for Work
+- **Enterprise relevance:** Passwordless authentication is a major enterprise initiative. Windows Hello for Business replaces passwords with cryptographic keys tied to the hardware.
+
+#### Device Compliance
+- **Description:** Define what "compliant" means for your devices:
+  - Require encryption (BitLocker/FileVault)
+  - Require minimum OS version
+  - Require specific security settings (firewall on, antivirus active)
+  - Require device health attestation
+- **Enterprise relevance:** This is the *input* to Conditional Access. A device that fails compliance cannot access corporate resources when a CA policy requires compliance.
+
+#### Conditional Access
+- **Description:** Note — this link redirects to the **Entra admin center**. Conditional Access has migrated out of Intune into Entra ID.
+- **What it does:** Grants or blocks access to cloud apps based on conditions (user, device state, location, risk level)
+- **Relationship to compliance:** CA policies reference compliance policies. "Block access unless device is compliant" is the most common pattern.
+
+### Step 4: Review Monitor Sub-Workloads
+Under **Endpoint security → Monitor**:
+- **Assignment failures** — Shows policies that failed to apply to devices
+- **Reports** — Compliance status, policy application status, threat summaries
+
+### Step 5: Review Setup Sub-Workloads
+Under **Endpoint security → Setup**:
+- **Microsoft Defender for Endpoint** — Configure the Intune ↔ Defender connector
+- **Onboarding** — How devices get onboarded to Defender for Endpoint
+
+## Key Concepts Learned
+
+### The Layered Security Model
+| Layer | Technology | Question It Answers |
+|-------|-----------|---------------------|
+| 1. Hardening | Antivirus, Firewall, ASR, Encryption | Is the device configured securely? |
+| 2. Compliance | Device compliance policies | Does the device meet our minimum bar? |
+| 3. Access Control | Conditional Access | Should this device reach our apps? |
+| 4. Data Protection | App protection (MAM), App Control | Is data protected even if the device isn't fully trusted? |
+
+### Baselines vs. Hand-Built Policies
+| Aspect | Security Baseline | Settings Catalog Profile |
+|--------|-------------------|--------------------------|
+| Speed to deploy | Minutes (pre-built) | Hours (manual selection) |
+| Customization | Limited to baseline scope | Unlimited |
+| Maintenance | Updated by Microsoft | Maintained by you |
+| Best use | Starting point / industry standard | Organization-specific requirements |
+
+### Where Things Live Now
+Some features have moved between portals over time:
+- **Conditional Access** → now in **Entra admin center**, not Intune
+- **Compliance policies** → still in Intune under Endpoint security
+- **Windows Update rings** → still in Intune under Devices
+
+Knowing where things live changes as Microsoft evolves the product. Checking the current IA is a real skill.
+
+## Outcomes
+- Mapped the full Endpoint security workload surface area
+- Documented each sub-workload and its purpose
+- Understood how hardening, compliance, and conditional access chain together
+- Identified Conditional Access migration to Entra ID
+
+## Limitations
+- No policies were created in this survey lab
+- No enrolled devices, so no monitoring data was available
+- Some workloads (Defender for Endpoint, EPM) require additional licensing beyond base Intune
+
+## Next Steps
+- Create a Security Baseline profile (Lab 6)
+- Create a Device Compliance Policy (Lab 7)
+- Build a Conditional Access policy referencing compliance (Lab 8)
+
+## References
+- [Microsoft Learn: Endpoint security in Intune](https://learn.microsoft.com/en-us/intune/endpoint-security/)
+- [Microsoft Learn: Security baselines](https://learn.microsoft.com/en-us/intune/security-baselines)
+- [Microsoft Learn: Attack surface reduction](https://learn.microsoft.com/en-us/mem/configmgr/protect/deploy-use/create-deploy-artifacts)
